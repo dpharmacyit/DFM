@@ -315,6 +315,26 @@ let selectedFiles = [];
 let distChart=null, pieChart=null, topChart=null;
 
 /* ============================================================
+   MONTH SORT HELPER
+   ============================================================ */
+const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function monthKeyToSortable(mk) {
+  // mk format: 'ม.ค.2026'
+  for (let i = 0; i < TH_MONTHS.length; i++) {
+    if (mk.startsWith(TH_MONTHS[i])) {
+      const year = parseInt(mk.slice(TH_MONTHS[i].length)) || 0;
+      return year * 100 + i;
+    }
+  }
+  return 0;
+}
+
+function sortMonths(keys) {
+  return [...keys].sort((a, b) => monthKeyToSortable(a) - monthKeyToSortable(b));
+}
+
+/* ============================================================
    FILE SELECTION / DRAG & DROP
    ============================================================ */
 const dropArea = document.getElementById('dropArea');
@@ -458,7 +478,7 @@ function buildDashboard() {
   document.getElementById('uploadZone').style.display = 'none';
   document.getElementById('dashboard').style.display = 'block';
 
-  const months = Object.keys(allMonthsData).sort();
+  const months = sortMonths(Object.keys(allMonthsData));
 
   // Month buttons
   const btnWrap = document.getElementById('monthBtns');
@@ -612,7 +632,7 @@ function updateTierCounts(data) {
    CHARTS
    ============================================================ */
 function updateDistChart() {
-  const months = Object.keys(allMonthsData).sort();
+  const months = sortMonths(Object.keys(allMonthsData));
   const tiers = ['300+','200-300','100-200','sub100'];
   const colors = ['#A32D2D','#185FA5','#3B6D11','#888780'];
   const datasets = tiers.map((t,i) => ({
@@ -695,7 +715,7 @@ function updateTopChart() {
    TABLE
    ============================================================ */
 function renderTable() {
-  const months = Object.keys(allMonthsData).sort();
+  const months = sortMonths(Object.keys(allMonthsData));
   const q = document.getElementById('searchBar').value.toLowerCase();
   let data = getDisplayData();
   if (q) data = data.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
