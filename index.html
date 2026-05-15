@@ -8,205 +8,201 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
   :root {
-    --bg: #f8f7f4;
-    --surface: #ffffff;
-    --surface2: #f1f0eb;
-    --border: rgba(0,0,0,0.1);
-    --text: #1a1a18;
-    --text2: #6b6a65;
-    --text3: #9b9a95;
+    --bg: #f8f7f4; --surface: #ffffff; --surface2: #f1f0eb;
+    --border: rgba(0,0,0,0.1); --text: #1a1a18; --text2: #6b6a65; --text3: #9b9a95;
     --blue: #185FA5; --blue-bg: #E6F1FB;
     --green: #3B6D11; --green-bg: #EAF3DE;
     --amber: #854F0B; --amber-bg: #FAEEDA;
     --red: #A32D2D; --red-bg: #FCEBEB;
     --gray: #5F5E5A; --gray-bg: #F1EFE8;
-    --radius: 10px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --radius: 10px; --shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-  /* === HEADER === */
+  /* HEADER */
   .app-header {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 0 2rem;
-    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
     height: 56px; position: sticky; top: 0; z-index: 100;
   }
   .app-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
   .app-subtitle { font-size: 12px; color: var(--text2); margin-top: 1px; }
-  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
   .month-badge { font-size: 11px; background: var(--blue-bg); color: var(--blue); padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+  .db-indicator { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+  .db-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gray); }
+  .db-dot.on { background: var(--green); }
 
-  /* === UPLOAD ZONE === */
+  /* UPLOAD ZONE */
   #uploadZone {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     min-height: calc(100vh - 56px); padding: 2rem;
   }
   .upload-card {
     background: var(--surface); border-radius: 16px; border: 2px dashed var(--border);
-    padding: 3rem 2rem; text-align: center; max-width: 560px; width: 100%;
-    transition: border-color 0.2s, background 0.2s; cursor: pointer;
+    padding: 3rem 2rem; text-align: center; max-width: 580px; width: 100%;
+    transition: border-color 0.2s, background 0.2s;
   }
-  .upload-card:hover, .upload-card.dragover { border-color: var(--blue); background: var(--blue-bg); }
+  .upload-card.dragover { border-color: var(--blue); background: var(--blue-bg); }
   .upload-icon { font-size: 48px; margin-bottom: 1rem; }
   .upload-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
   .upload-card p { font-size: 13px; color: var(--text2); line-height: 1.6; }
-  .upload-btn {
-    margin-top: 1.5rem; padding: 10px 24px; background: var(--blue); color: #fff;
-    border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 500;
-  }
-  .upload-btn:hover { opacity: 0.88; }
-  #fileInput { display: none; }
-  .file-list { margin-top: 1.5rem; width: 100%; text-align: left; }
-  .file-item {
-    display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-    background: var(--surface2); border-radius: 8px; margin-bottom: 6px;
-    font-size: 13px;
-  }
-  .file-item .fi-icon { color: var(--blue); font-size: 16px; }
-  .file-item .fi-name { flex: 1; font-weight: 500; }
-  .file-item .fi-status { font-size: 11px; color: var(--text2); }
-  .file-item.done .fi-status { color: var(--green); }
-  .file-item.error .fi-status { color: var(--red); }
-  .process-btn {
-    margin-top: 1rem; width: 100%; padding: 12px; background: #185FA5; color: #fff;
-    border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  .process-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .process-btn:not(:disabled):hover { background: #0C447C; }
-  .progress-wrap { margin-top: 1rem; }
-  .progress-bar-bg { background: var(--surface2); border-radius: 8px; height: 6px; overflow: hidden; }
-  .progress-bar { height: 100%; background: var(--blue); border-radius: 8px; transition: width 0.3s; }
-  .progress-text { font-size: 12px; color: var(--text2); margin-top: 6px; text-align: center; }
 
-  /* === DASHBOARD === */
-  #dashboard { display: none; padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+  /* cache banner */
+  .cache-banner {
+    display: none; background: var(--green-bg); border: 1px solid rgba(59,109,17,0.25);
+    border-radius: 10px; padding: 14px 16px; margin-top: 20px; text-align: left;
+  }
+  .cache-banner .cb-title { font-size: 13px; font-weight: 600; color: var(--green); margin-bottom: 3px; }
+  .cache-banner .cb-desc { font-size: 12px; color: var(--text2); }
+  .cache-banner .cb-row { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-load { padding: 7px 18px; background: var(--green); color:#fff; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-load:hover { opacity:.88; }
+  .btn-clear-cache { padding:7px 14px; background:transparent; color:var(--text2); border:1px solid var(--border); border-radius:8px; font-size:12px; cursor:pointer; }
+  .btn-clear-cache:hover { color:var(--red); border-color:var(--red); }
 
-  .dash-controls {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 1.25rem; flex-wrap: wrap;
-  }
-  .dash-controls label { font-size: 13px; color: var(--text2); font-weight: 500; }
-  select, .month-btn {
-    font-size: 13px; padding: 6px 14px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--surface); color: var(--text); cursor: pointer;
-  }
-  .month-btn { display: inline-block; transition: all 0.15s; }
-  .month-btn:hover { border-color: var(--blue); color: var(--blue); }
-  .month-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-  .reset-btn {
-    margin-left: auto; font-size: 12px; padding: 6px 14px; border: 1px solid var(--border);
-    border-radius: 8px; background: var(--surface); color: var(--text2); cursor: pointer;
-  }
-  .reset-btn:hover { color: var(--red); border-color: var(--red); }
+  .upload-btn { margin-top:1.5rem; padding:10px 24px; background:var(--blue); color:#fff; border:none; border-radius:8px; font-size:14px; cursor:pointer; font-weight:500; }
+  .upload-btn:hover { opacity:.88; }
+  #fileInput { display:none; }
+  .file-list { margin-top:1.5rem; width:100%; text-align:left; }
+  .file-item { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border-radius:8px; margin-bottom:6px; font-size:13px; }
+  .file-item .fi-icon { color:var(--blue); }
+  .file-item .fi-name { flex:1; font-weight:500; }
+  .file-item .fi-status { font-size:11px; color:var(--text2); }
+  .file-item.done .fi-status { color:var(--green); }
+  .file-item.error .fi-status { color:var(--red); }
+  .process-btn { margin-top:1rem; width:100%; padding:12px; background:#185FA5; color:#fff; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; }
+  .process-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .process-btn:not(:disabled):hover { background:#0C447C; }
+  .progress-wrap { margin-top:1rem; }
+  .progress-bar-bg { background:var(--surface2); border-radius:8px; height:6px; overflow:hidden; }
+  .progress-bar { height:100%; background:var(--blue); border-radius:8px; transition:width .3s; }
+  .progress-text { font-size:12px; color:var(--text2); margin-top:6px; text-align:center; }
 
-  .metrics-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 1.25rem;
-  }
-  .metric-card {
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-    padding: 1rem 1.1rem; box-shadow: var(--shadow);
-  }
-  .metric-card .m-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-  .metric-card .m-val { font-size: 26px; font-weight: 700; line-height: 1; }
-  .metric-card .m-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
-  .metric-card.c-red .m-val { color: var(--red); }
-  .metric-card.c-blue .m-val { color: var(--blue); }
-  .metric-card.c-green .m-val { color: var(--green); }
-  .metric-card.c-amber .m-val { color: var(--amber); }
+  /* DASHBOARD */
+  #dashboard { display:none; padding:1.5rem 2rem; max-width:1400px; margin:0 auto; }
 
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.25rem; }
-  @media (max-width: 860px) { .charts-row { grid-template-columns: 1fr; } }
+  /* NAV BAR */
+  .nav-bar { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; margin-bottom:1.25rem; box-shadow:var(--shadow); }
+  .nav-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .nav-label { font-size:11px; font-weight:700; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; min-width:42px; }
+  .nav-btn { font-size:12px; padding:5px 14px; border:1px solid var(--border); border-radius:20px; background:var(--surface); color:var(--text); cursor:pointer; transition:all .15s; white-space:nowrap; }
+  .nav-btn:hover { border-color:var(--blue); color:var(--blue); }
+  .nav-btn.active { background:var(--blue); color:#fff; border-color:var(--blue); font-weight:600; }
+  .nav-btn.special { background:var(--amber-bg); border-color:rgba(133,79,11,.3); color:var(--amber); }
+  .nav-btn.special.active { background:var(--amber); color:#fff; border-color:var(--amber); }
+  .nav-sep { width:1px; height:18px; background:var(--border); margin:0 2px; flex-shrink:0; }
+  .nav-month-row { margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:none; }
+  .nav-month-row.show { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 
-  .chart-card {
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-    padding: 1.1rem; box-shadow: var(--shadow);
-  }
-  .chart-card h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
-  .chart-wrap-h { position: relative; height: 280px; }
-  .chart-wrap-top { position: relative; height: 360px; }
+  /* CONTROLS */
+  .dash-controls { display:flex; align-items:center; gap:10px; margin-bottom:1.25rem; flex-wrap:wrap; }
+  .dash-controls label { font-size:13px; color:var(--text2); font-weight:500; }
+  select { font-size:13px; padding:6px 12px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--text); cursor:pointer; }
+  .btn-add-pdf { padding:6px 14px; background:var(--blue-bg); color:var(--blue); border:1px solid rgba(24,95,165,.3); border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
+  .btn-add-pdf:hover { background:var(--blue); color:#fff; }
+  .btn-reset { padding:6px 14px; background:var(--surface); color:var(--text2); border:1px solid var(--border); border-radius:8px; font-size:12px; cursor:pointer; margin-left:auto; }
+  .btn-reset:hover { color:var(--red); border-color:var(--red); }
 
-  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-  .legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
-  .ld { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  /* METRICS */
+  .metrics-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:1.25rem; }
+  .metric-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1rem 1.1rem; box-shadow:var(--shadow); }
+  .metric-card .m-label { font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+  .metric-card .m-val { font-size:26px; font-weight:700; line-height:1; }
+  .metric-card .m-sub { font-size:11px; color:var(--text3); margin-top:4px; }
+  .metric-card.c-red .m-val { color:var(--red); }
+  .metric-card.c-blue .m-val { color:var(--blue); }
+  .metric-card.c-green .m-val { color:var(--green); }
+  .metric-card.c-amber .m-val { color:var(--amber); }
 
-  .table-card {
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-    padding: 1.1rem; box-shadow: var(--shadow); margin-bottom: 1rem;
-  }
-  .table-card h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
-  .tbl-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th {
-    font-size: 11px; font-weight: 600; color: var(--text2); text-align: left;
-    padding: 7px 10px; border-bottom: 1.5px solid var(--border); white-space: nowrap;
-    background: var(--surface2); position: sticky; top: 0;
-  }
-  td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td.num.bold { font-weight: 600; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; white-space: nowrap; }
-  .b-red { background: var(--red-bg); color: var(--red); }
-  .b-blue { background: var(--blue-bg); color: var(--blue); }
-  .b-green { background: var(--green-bg); color: var(--green); }
-  .b-gray { background: var(--gray-bg); color: var(--gray); }
+  /* CHARTS */
+  .charts-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:1.25rem; }
+  @media (max-width:860px) { .charts-row { grid-template-columns:1fr; } }
+  .chart-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1.1rem; box-shadow:var(--shadow); }
+  .chart-card h3 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:12px; }
+  .chart-wrap-h { position:relative; height:280px; }
+  .chart-wrap-top { position:relative; height:360px; }
+  .legend { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:10px; }
+  .legend span { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--text2); }
+  .ld { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
 
-  .tier-summary-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem;
-  }
-  @media (max-width: 700px) { .tier-summary-grid { grid-template-columns: repeat(2, 1fr); } }
-  .tier-card {
-    background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
-    padding: 1rem; text-align: center; box-shadow: var(--shadow); cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .tier-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .tier-card.selected { outline: 2px solid var(--blue); }
-  .tier-card .tc-num { font-size: 32px; font-weight: 700; }
-  .tier-card .tc-label { font-size: 12px; font-weight: 600; margin: 4px 0 2px; }
-  .tier-card .tc-sub { font-size: 11px; color: var(--text2); }
-  .tc-300 .tc-num { color: var(--red); }
-  .tc-200 .tc-num { color: var(--blue); }
-  .tc-100 .tc-num { color: var(--green); }
-  .tc-sub100 .tc-num { color: var(--gray); }
+  /* TIER CARDS */
+  .tier-summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:1.25rem; }
+  @media (max-width:700px) { .tier-summary-grid { grid-template-columns:repeat(2,1fr); } }
+  .tier-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1rem; text-align:center; box-shadow:var(--shadow); cursor:pointer; transition:transform .15s,box-shadow .15s; }
+  .tier-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.1); }
+  .tier-card.selected { outline:2px solid var(--blue); }
+  .tier-card .tc-num { font-size:32px; font-weight:700; }
+  .tier-card .tc-label { font-size:12px; font-weight:600; margin:4px 0 2px; }
+  .tier-card .tc-sub { font-size:11px; color:var(--text2); }
+  .tc-300 .tc-num { color:var(--red); }
+  .tc-200 .tc-num { color:var(--blue); }
+  .tc-100 .tc-num { color:var(--green); }
+  .tc-sub100 .tc-num { color:var(--gray); }
 
-  .search-bar {
-    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
-    font-size: 13px; background: var(--surface); color: var(--text); margin-bottom: 12px;
-  }
-  .search-bar:focus { outline: none; border-color: var(--blue); }
+  /* TABLE */
+  .table-card { background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); padding:1.1rem; box-shadow:var(--shadow); margin-bottom:1rem; }
+  .table-card h3 { font-size:13px; font-weight:600; color:var(--text); margin-bottom:12px; }
+  .search-bar { width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; background:var(--surface); color:var(--text); margin-bottom:12px; }
+  .search-bar:focus { outline:none; border-color:var(--blue); }
+  .tbl-scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:12px; }
+  th { font-size:11px; font-weight:600; color:var(--text2); text-align:left; padding:7px 10px; border-bottom:1.5px solid var(--border); white-space:nowrap; background:var(--surface2); position:sticky; top:0; }
+  td { padding:7px 10px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:var(--surface2); }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  td.num.bold { font-weight:600; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:10px; font-weight:600; white-space:nowrap; }
+  .b-red { background:var(--red-bg); color:var(--red); }
+  .b-blue { background:var(--blue-bg); color:var(--blue); }
+  .b-green { background:var(--green-bg); color:var(--green); }
+  .b-gray { background:var(--gray-bg); color:var(--gray); }
+  .no-data { text-align:center; padding:2rem; color:var(--text3); font-size:13px; }
 
-  .no-data { text-align: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:#185FA5; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,.2); animation:slideIn .2s ease; }
+  @keyframes slideIn { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
 
-  /* scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <header class="app-header">
   <div>
     <div class="app-title">DFM Network Usage Dashboard</div>
     <div class="app-subtitle">ระบบวิเคราะห์ปริมาณการใช้งาน Internet รายสาขา</div>
   </div>
   <div class="header-right">
+    <div class="db-indicator">
+      <div class="db-dot" id="dbDot"></div>
+      <span id="dbLabel">กำลังโหลด...</span>
+    </div>
     <span class="month-badge" id="headerPeriod">ยังไม่โหลดข้อมูล</span>
   </div>
 </header>
 
-<!-- UPLOAD ZONE -->
+<!-- UPLOAD -->
 <div id="uploadZone">
   <div class="upload-card" id="dropArea">
     <div class="upload-icon">📂</div>
     <h2>อัปโหลดไฟล์ PDF รายงาน DFM</h2>
-    <p>รองรับไฟล์ PDF รายงาน PRTG Network Monitor<br>สามารถอัปโหลดได้หลายไฟล์พร้อมกัน (รายเดือน)</p>
-    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">เลือกไฟล์ PDF</button>
+    <p>รองรับไฟล์ PDF รายงาน PRTG Network Monitor<br>อัปโหลดได้หลายไฟล์พร้อมกัน — ข้อมูลจะถูกบันทึกลง Browser อัตโนมัติ</p>
+
+    <div class="cache-banner" id="cacheBanner">
+      <div class="cb-title">💾 พบข้อมูลที่บันทึกไว้ในเครื่อง</div>
+      <div class="cb-desc" id="cacheDesc">—</div>
+      <div class="cb-row">
+        <button class="btn-load" onclick="loadFromCache()">เปิดข้อมูลเดิม</button>
+        <button class="btn-clear-cache" onclick="clearCacheOnly()">ล้างข้อมูล</button>
+      </div>
+    </div>
+
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">+ เลือกไฟล์ PDF</button>
     <input type="file" id="fileInput" accept=".pdf" multiple>
     <div class="file-list" id="fileList"></div>
     <div class="progress-wrap" id="progressWrap" style="display:none">
@@ -219,10 +215,20 @@
 
 <!-- DASHBOARD -->
 <div id="dashboard">
+
+  <!-- YEAR/MONTH NAV -->
+  <div class="nav-bar">
+    <div class="nav-row" id="navYearRow">
+      <span class="nav-label">ปี</span>
+    </div>
+    <div class="nav-month-row" id="navMonthRow">
+      <span class="nav-label">เดือน</span>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
   <div class="dash-controls">
-    <label>เดือน:</label>
-    <div id="monthBtns"></div>
-    <label style="margin-left:8px">กรองกลุ่ม:</label>
+    <label>กรองกลุ่ม:</label>
     <select id="filterSelect" onchange="applyFilter()">
       <option value="all">ทั้งหมด</option>
       <option value="300+">300+ GB</option>
@@ -230,31 +236,16 @@
       <option value="100-200">100–200 GB</option>
       <option value="sub100">น้อยกว่า 100 GB</option>
     </select>
-    <button class="reset-btn" onclick="resetDashboard()">⟵ เพิ่ม/เปลี่ยน PDF</button>
+    <button class="btn-add-pdf" onclick="addMorePdf()">+ เพิ่ม PDF ใหม่</button>
+    <button class="btn-reset" onclick="resetAll()">🗑 ล้างทั้งหมด</button>
   </div>
 
-  <!-- TIER SUMMARY -->
+  <!-- TIER -->
   <div class="tier-summary-grid">
-    <div class="tier-card tc-300" onclick="clickTier('300+')" id="tc300">
-      <div class="tc-num" id="cnt300">0</div>
-      <div class="tc-label">300+ GB</div>
-      <div class="tc-sub">สาขาใช้งานสูงมาก</div>
-    </div>
-    <div class="tier-card tc-200" onclick="clickTier('200-300')" id="tc200">
-      <div class="tc-num" id="cnt200">0</div>
-      <div class="tc-label">200–300 GB</div>
-      <div class="tc-sub">สาขาใช้งานสูง</div>
-    </div>
-    <div class="tier-card tc-100" onclick="clickTier('100-200')" id="tc100">
-      <div class="tc-num" id="cnt100">0</div>
-      <div class="tc-label">100–200 GB</div>
-      <div class="tc-sub">สาขาใช้งานปานกลาง</div>
-    </div>
-    <div class="tier-card tc-sub100" onclick="clickTier('sub100')" id="tcsub">
-      <div class="tc-num" id="cntsub">0</div>
-      <div class="tc-label">&lt;100 GB</div>
-      <div class="tc-sub">สาขาใช้งานน้อย</div>
-    </div>
+    <div class="tier-card tc-300" onclick="clickTier('300+')" id="tc300"><div class="tc-num" id="cnt300">0</div><div class="tc-label">300+ GB</div><div class="tc-sub">สาขาใช้งานสูงมาก</div></div>
+    <div class="tier-card tc-200" onclick="clickTier('200-300')" id="tc200"><div class="tc-num" id="cnt200">0</div><div class="tc-label">200–300 GB</div><div class="tc-sub">สาขาใช้งานสูง</div></div>
+    <div class="tier-card tc-100" onclick="clickTier('100-200')" id="tc100"><div class="tc-num" id="cnt100">0</div><div class="tc-label">100–200 GB</div><div class="tc-sub">สาขาใช้งานปานกลาง</div></div>
+    <div class="tier-card tc-sub100" onclick="clickTier('sub100')" id="tcsub"><div class="tc-num" id="cntsub">0</div><div class="tc-label">&lt;100 GB</div><div class="tc-sub">สาขาใช้งานน้อย</div></div>
   </div>
 
   <!-- METRICS -->
@@ -269,189 +260,292 @@
   <!-- CHARTS -->
   <div class="charts-row">
     <div class="chart-card">
-      <h3>การกระจายตามช่วงปริมาณใช้งาน (รายเดือน)</h3>
+      <h3 id="distTitle">การกระจายตามช่วงปริมาณใช้งาน</h3>
       <div class="legend">
         <span><span class="ld" style="background:#A32D2D"></span>300+ GB</span>
         <span><span class="ld" style="background:#185FA5"></span>200–300 GB</span>
         <span><span class="ld" style="background:#3B6D11"></span>100–200 GB</span>
         <span><span class="ld" style="background:#888780"></span>&lt;100 GB</span>
       </div>
-      <div class="chart-wrap-h"><canvas id="distChart" role="img" aria-label="Stacked bar chart of branch count per tier per month"></canvas></div>
+      <div class="chart-wrap-h"><canvas id="distChart"></canvas></div>
     </div>
     <div class="chart-card">
       <h3>สัดส่วนสาขาตามกลุ่มการใช้งาน</h3>
-      <div class="chart-wrap-h"><canvas id="pieChart" role="img" aria-label="Pie chart of branch distribution by usage tier"></canvas></div>
+      <div class="chart-wrap-h"><canvas id="pieChart"></canvas></div>
     </div>
   </div>
-
   <div class="chart-card" style="margin-bottom:1.25rem">
     <h3>Top 10 สาขาใช้งานสูงสุด</h3>
-    <div class="chart-wrap-top"><canvas id="topChart" role="img" aria-label="Horizontal bar chart top 10 branches by average GB"></canvas></div>
+    <div class="chart-wrap-top"><canvas id="topChart"></canvas></div>
   </div>
 
   <!-- TABLE -->
   <div class="table-card">
     <h3 id="tblTitle">ตารางข้อมูลทุกสาขา</h3>
     <input class="search-bar" id="searchBar" type="text" placeholder="ค้นหาสาขา..." oninput="renderTable()">
-    <div class="tbl-scroll">
-      <table>
-        <thead id="tblHead"></thead>
-        <tbody id="tblBody"></tbody>
-      </table>
-    </div>
+    <div class="tbl-scroll"><table><thead id="tblHead"></thead><tbody id="tblBody"></tbody></table></div>
   </div>
 </div>
 
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-/* ============================================================
+/* ====================================================
+   CONSTANTS
+   ==================================================== */
+const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const DB_NAME = 'DFMDashboard', DB_VER = 1, STORE = 'months';
+
+/* ====================================================
    STATE
-   ============================================================ */
-let allMonthsData = {};   // { 'ม.ค.2026': [{id,name,gbKB}, ...] }
-let currentMonth = 'avg';
+   ==================================================== */
+let allMonthsData = {};   // { 'ม.ค.2026': { 'DFM0001': {id,name,kb} } }
+let currentYear   = 'all';
+let currentMonth  = 'avg';
 let currentFilter = 'all';
 let selectedFiles = [];
-let distChart=null, pieChart=null, topChart=null;
+let distChart = null, pieChart = null, topChart = null;
+let db = null;
 
-/* ============================================================
-   MONTH SORT HELPER
-   ============================================================ */
-const TH_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+/* ====================================================
+   INDEXED DB
+   ==================================================== */
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(STORE, { keyPath: 'monthKey' });
+    req.onsuccess  = e => { db = e.target.result; res(db); };
+    req.onerror    = () => rej(req.error);
+  });
+}
+function dbSave(monthKey, data) {
+  if (!db) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({ monthKey, data, savedAt: Date.now() });
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
+function dbLoadAll() {
+  if (!db) return Promise.resolve({});
+  return new Promise((res, rej) => {
+    const req = db.transaction(STORE,'readonly').objectStore(STORE).getAll();
+    req.onsuccess = () => { const o={}; req.result.forEach(r=>o[r.monthKey]=r.data); res(o); };
+    req.onerror = () => rej(req.error);
+  });
+}
+function dbClear() {
+  if (!db) return Promise.resolve();
+  return new Promise((res,rej) => {
+    const tx = db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).clear();
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  });
+}
 
-function monthKeyToSortable(mk) {
-  // mk format: 'ม.ค.2026'
-  for (let i = 0; i < TH_MONTHS.length; i++) {
-    if (mk.startsWith(TH_MONTHS[i])) {
-      const year = parseInt(mk.slice(TH_MONTHS[i].length)) || 0;
-      return year * 100 + i;
+function setDbStatus(count) {
+  document.getElementById('dbDot').className = 'db-dot' + (count>0?' on':'');
+  document.getElementById('dbLabel').textContent = count>0 ? `Cache: ${count} เดือน` : 'ไม่มี cache';
+}
+
+/* ====================================================
+   INIT
+   ==================================================== */
+(async () => {
+  try {
+    await openDB();
+    const cached = await dbLoadAll();
+    const keys = Object.keys(cached);
+    setDbStatus(keys.length);
+    if (keys.length > 0) {
+      const s = sortMonths(keys);
+      document.getElementById('cacheBanner').style.display = 'block';
+      document.getElementById('cacheDesc').textContent =
+        `${keys.length} เดือน (${s[0]} – ${s[s.length-1]}) · คลิก "เปิดข้อมูลเดิม" เพื่อใช้งานทันที โดยไม่ต้องอัปโหลด PDF ใหม่`;
     }
-  }
-  return 0;
+  } catch(e) { console.warn('IndexedDB unavailable', e); setDbStatus(0); }
+})();
+
+async function loadFromCache() {
+  const cached = await dbLoadAll();
+  if (!Object.keys(cached).length) { alert('ไม่พบข้อมูลใน cache'); return; }
+  allMonthsData = cached;
+  buildDashboard();
+}
+async function clearCacheOnly() {
+  if (!confirm('ล้างข้อมูลที่บันทึกไว้ใน Browser?')) return;
+  await dbClear();
+  allMonthsData = {};
+  document.getElementById('cacheBanner').style.display = 'none';
+  setDbStatus(0);
 }
 
-function sortMonths(keys) {
-  return [...keys].sort((a, b) => monthKeyToSortable(a) - monthKeyToSortable(b));
-}
-
-/* ============================================================
-   FILE SELECTION / DRAG & DROP
-   ============================================================ */
+/* ====================================================
+   DRAG & DROP / FILE INPUT
+   ==================================================== */
 const dropArea = document.getElementById('dropArea');
 const fileInput = document.getElementById('fileInput');
-
 dropArea.addEventListener('dragover', e => { e.preventDefault(); dropArea.classList.add('dragover'); });
 dropArea.addEventListener('dragleave', () => dropArea.classList.remove('dragover'));
-dropArea.addEventListener('drop', e => {
-  e.preventDefault(); dropArea.classList.remove('dragover');
-  addFiles([...e.dataTransfer.files].filter(f => f.type === 'application/pdf'));
-});
-fileInput.addEventListener('change', () => addFiles([...fileInput.files]));
+dropArea.addEventListener('drop', e => { e.preventDefault(); dropArea.classList.remove('dragover'); addFiles([...e.dataTransfer.files].filter(f=>f.type==='application/pdf')); });
+fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value=''; });
 
 function addFiles(files) {
-  files.forEach(f => {
-    if (!selectedFiles.find(x => x.name === f.name)) selectedFiles.push(f);
-  });
+  files.forEach(f => { if (!selectedFiles.find(x=>x.name===f.name)) selectedFiles.push(f); });
   renderFileList();
 }
-
 function renderFileList() {
-  const list = document.getElementById('fileList');
-  list.innerHTML = selectedFiles.map((f,i) => `
+  document.getElementById('fileList').innerHTML = selectedFiles.map((f,i)=>`
     <div class="file-item" id="fi${i}">
-      <span class="fi-icon">📄</span>
-      <span class="fi-name">${f.name}</span>
+      <span class="fi-icon">📄</span><span class="fi-name">${f.name}</span>
       <span class="fi-status">รอประมวลผล</span>
     </div>`).join('');
-  document.getElementById('processBtn').disabled = selectedFiles.length === 0;
+  document.getElementById('processBtn').disabled = !selectedFiles.length;
 }
 
-/* ============================================================
-   PDF PARSING
-   ============================================================ */
+/* ====================================================
+   PDF PROCESSING
+   ==================================================== */
 async function processFiles() {
   document.getElementById('processBtn').disabled = true;
   document.getElementById('progressWrap').style.display = 'block';
-  allMonthsData = {};
+
+  // merge กับ cache เดิม
+  if (db && !Object.keys(allMonthsData).length) allMonthsData = await dbLoadAll();
 
   for (let i = 0; i < selectedFiles.length; i++) {
     const f = selectedFiles[i];
-    setFileStatus(i, 'กำลังอ่าน...', '');
-    setProgress(Math.round((i / selectedFiles.length) * 80), `อ่านไฟล์ ${i+1}/${selectedFiles.length}: ${f.name}`);
+    setFileStatus(i,'กำลังอ่าน...','');
+    setProgress(Math.round(i/selectedFiles.length*80), `อ่านไฟล์ ${i+1}/${selectedFiles.length}: ${f.name}`);
     try {
-      const monthKey = await parsePDF(f);
-      setFileStatus(i, `✓ โหลดแล้ว (${Object.keys(allMonthsData[monthKey]||{}).length} สาขา)`, 'done');
+      const mk = await parsePDF(f);
+      await dbSave(mk, allMonthsData[mk]);   // บันทึก IndexedDB ทันที
+      setFileStatus(i, `✓ ${mk} (${Object.keys(allMonthsData[mk]).length} สาขา)`, 'done');
     } catch(e) {
-      setFileStatus(i, '✗ อ่านไม่สำเร็จ', 'error');
+      setFileStatus(i,'✗ อ่านไม่สำเร็จ','error');
       console.error(f.name, e);
     }
   }
 
-  setProgress(100, 'เสร็จสิ้น!');
-  setTimeout(() => buildDashboard(), 500);
+  setProgress(100, '✓ เสร็จสิ้น — บันทึก cache แล้ว');
+  setDbStatus(Object.keys(allMonthsData).length);
+  selectedFiles = [];
+  setTimeout(buildDashboard, 600);
 }
 
 async function parsePDF(file) {
   const ab = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  let fullText = '';
-  for (let p = 1; p <= pdf.numPages; p++) {
-    const page = await pdf.getPage(p);
-    const tc = await page.getTextContent();
-    fullText += tc.items.map(i => i.str).join(' ') + '\n';
+  let text = '';
+  for (let p=1; p<=pdf.numPages; p++) {
+    const pg = await pdf.getPage(p);
+    const tc = await pg.getTextContent();
+    text += tc.items.map(i=>i.str).join(' ') + '\n';
   }
 
-  // Detect period from text
-  const periodMatch = fullText.match(/Report DFM\s+\((\d+\/\d+\/\d+)[^)]+\)/i);
-  let monthKey = 'ไม่ทราบเดือน';
-  if (periodMatch) {
-    const d = new Date(periodMatch[1]);
-    const thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-    monthKey = thMonths[d.getMonth()] + d.getFullYear();
+  // Header format: "Report DFM (M/D/YYYY hh:mm:ss AM/PM - ...)"
+  // M/D/YYYY ต้อง parse manual เพราะ new Date("10/1/2025") อาจ interpret ผิด timezone
+  const pm = text.match(/Report\s+DFM\s+\((\d{1,2})\/(\d{1,2})\/(\d{4})/i);
+  let mk = 'ไม่ทราบเดือน';
+  if (pm) {
+    const month = parseInt(pm[1], 10) - 1; // 0-indexed
+    const year  = parseInt(pm[3], 10);
+    mk = TH_MONTHS[month] + year;
   }
 
-  // Parse branches
-  const branches = extractBranches(fullText);
-  allMonthsData[monthKey] = branches;
-  return monthKey;
+  allMonthsData[mk] = extractBranches(text);
+  return mk;
 }
 
+function cleanBranchName(raw) {
+  let s = raw;
+  // 1. ลบ DFMxxxx
+  s = s.replace(/DFM\d+/g, '');
+  // 2. ลบ "ดีฟา ดี ร์มาร์ ซี" และรูปแบบที่ PDF แตกตัวอักษร
+  s = s.replace(/ดี\s*ฟา\s*ดี\s*ร์\s*มาร์\s*ซี/g, '');
+  s = s.replace(/ดีฟาร์มาร์ซี/g, '');
+  // 3. ลบ " ซี" ที่ลอยๆ (แต่เก็บ ซ.9)
+  s = s.replace(/(?<!\u0E0B\.)\s+ซี\b/g, '');
+  // 4. normalize
+  s = s.replace(/\s+/g, ' ').replace(/^[\s:：\-]+|[\s:：\-]+$/g, '').trim();
+
+  // 5. ถ้าชื่อสั้นเกินไปหรือมี artifact ให้ลอง match กับ known names
+  const known = KNOWN_BRANCH_NAMES[s] || KNOWN_BRANCH_NAMES[s.replace(/\s+/g,'')];
+  return known || s;
+}
+
+// Lookup table สำหรับชื่อสาขาที่ PDF render ผิดเพี้ยน
+// key = ชื่อที่ clean แล้ว (ยังมี artifact), value = ชื่อที่ถูกต้อง
+const KNOWN_BRANCH_NAMES = {
+  // ชื่อที่ parse ได้หลัง clean step 1-4 -> ชื่อที่ถูกต้อง
+  'สาขาห น้ารพ.ก รุงเทพ พัทยา':     'สาขาหน้ารพ.กรุงเทพ พัทยา',
+  'สาขาห น้าโรงพยาบาล พญาไท':       'สาขาหน้าโรงพยาบาลพญาไท',
+  'สาขาห น้าน้ ร.พ.ชลบุรีบุ':       'สาขาหน้า ร.พ.ชลบุรี',
+  'สาขาห น้าน้ รพ.ปลวกแดง':         'สาขาหน้ารพ.ปลวกแดง',
+  'สาขาห น้าโรงพยาบาล กรุง...':     'สาขาหน้าโรงพยาบาลกรุง...',
+  'สาขา บ่อทอง':                    'สาขาบ่อทอง',
+  'สาขาอ่างอ่ ศิลาศิ':              'สาขาอ่างศิลา',
+  'สาขา ท่าสะ อ้านอ้':              'สาขาท่าสะอ้าน',
+  'สาขาปตท บาง ทราย':               'สาขาปตท.บางทราย',
+  'สาขาเค รือสห พัฒน์':             'สาขาเครือสหพัฒน์',
+  'สาขาบาง วัววั':                  'สาขาบางวัว',
+  'สาขาเทพประสิทสิ ธิ์':            'สาขาเทพประสิทธิ์',
+  'สาขาศ รีราชา3':                  'สาขาศรีราชา3',
+  'สาขาศ รีราชา1':                  'สาขาศรีราชา1',
+  'สาขา บ้านสวน ซ.9':               'สาขาบ้านสวน ซ.9',
+  'สาขา ปตท.พานทอง':                'สาขาปตท.พานทอง',
+  'สาขา สัตสั หีบ กม.10':           'สาขาสัตหีบ กม.10',
+  'สาขา สัตสั หีบ กม.1':            'สาขาสัตหีบ กม.1',
+  'สาขาบ้านบ้ บึง1บึ':              'สาขาบ้านบึง1',
+  'สาขา บ้านบ้ เภอ':                'สาขาบ้านอำเภอ',
+  'สาขา บ้านบ้ บึง2บึ':             'สาขาบ้านบึง2',
+  'สาขา นิคม304 ปราจีนจี บุรีบุ':  'สาขานิคม304 ปราจีนบุรี',
+  'สาขา บ่อบ่ วินวิ':               'สาขาบ่อวิน',
+  'สาขาถนนพระยาสัจจา':              'สาขาถนนพระยาสัจจา',
+  'สาขาพนัสนิคมนิ':                 'สาขาพนัสนิคม',
+  'สาขานา ป่า':                     'สาขานาป่า',
+  'สาขาสะพาน สี่':                  'สาขาสะพานสี่',
+  'สาขาปตท. บ้านเ ก่าก่':           'สาขาปตท.บ้านเก่า',
+  'สาขาเกาะโพ ธิ์':                 'สาขาเกาะโพธิ์',
+  'สาขา นิคมอมตะ 2':                'สาขานิคมอมตะ2',
+  'สาขาฉะเ ชิงเทรา':                'สาขาฉะเชิงเทรา',
+  'สาขา ปตท.บางคล้าล้':             'สาขาปตท.บางคล้า',
+  'สํานักงานใหญ่(Bญ่ ackup FT...': 'สำนักงานใหญ่ (Backup FTTx)',
+};
+
 function extractBranches(text) {
-  /* Strategy: find DFM\d+ patterns then grab Total (Traffic Total) KByte value */
   const branches = {};
+  // normalize whitespace
+  const t = text.replace(/[ \t]+/g, ' ');
 
-  // Normalize spaces
-  const t = text.replace(/\s+/g, ' ');
-
-  // Find all DFM branch entries
-  // Pattern: DFM\d+ : <name> ... Total (Traffic Total): <number> KByte
-  const blockRe = /(DFM\d+)\s*[:：]?\s*([\u0E00-\u0E7F\w\s\(\)\/\.\-]+?)\s+(?:Average \(Traffic\s*Total\)\s*:\s*[\d,]+\s*kbit\/s\s+)?Total \(Traffic\s*Total\)\s*:\s*([\d,]+)\s*KByte/gi;
+  // Pattern หลัก: DFMxxxx : <ชื่อ> ... Total (Traffic Total): <kb> KByte
+  // ชื่อสาขาในรายงานนี้อยู่ใน Device field ซึ่งตามหลัง "DFM\nDFMxxxx: ชื่อ"
+  // ใช้ regex จับ block ต่อ block
+  const blockRe = /(DFM\d+)\s*[:：]?\s*([\u0E00-\u0E7Fa-zA-Z0-9\s\(\)\/\.\-\,]+?)\s+(?:Average\s*\(Traffic\s*Total\)\s*:\s*[\d,]+\s*kbit\/s\s+)?Total\s*\(Traffic\s*Total\)\s*:\s*([\d,]+)\s*KByte/gi;
 
   let m;
   while ((m = blockRe.exec(t)) !== null) {
-    const id = m[1].trim();
-    const rawName = m[2].trim()
-      .replace(/DFM\d+/g,'')
-      .replace(/ดีฟา.{0,3}ร์มาร์.{0,3}ซี/g,'')
-      .replace(/สาขา/g,'สาขา')
-      .replace(/\s+/g,' ')
-      .replace(/^[\s:：\-]+|[\s:：\-]+$/g,'')
-      .trim();
-    const name = rawName || id;
-    const kb = parseInt(m[3].replace(/,/g,''));
-    if (!isNaN(kb) && kb > 0) {
-      branches[id] = { id, name, kb };
+    const id   = m[1].trim().toUpperCase();
+    const raw  = m[2].trim();
+    const kb   = parseInt(m[3].replace(/,/g, ''), 10);
+
+    if (!isNaN(kb)) {
+      const name = cleanBranchName(raw) || id;
+      // ถ้ายังไม่มี หรือ ชื่อใหม่ดีกว่า (ยาวกว่า id) ให้อัปเดต
+      if (!branches[id] || (name !== id && name.length > (branches[id].name || '').length)) {
+        branches[id] = { id, name, kb };
+      }
     }
   }
 
-  // Fallback: simpler pattern if above misses entries
+  // Fallback: ถ้า parse ได้น้อยกว่า 5 สาขา ลองแบบ loose กว่า
   if (Object.keys(branches).length < 5) {
-    const re2 = /DFM(\d+)[^\d].*?Total \(Traffic\s*Total\)\s*:\s*([\d,]+)\s*KByte/gi;
+    const re2 = /DFM(\d+)[^\d][\s\S]*?Total\s*\(Traffic\s*Total\)\s*:\s*([\d,]+)\s*KByte/gi;
     let m2;
     while ((m2 = re2.exec(t)) !== null) {
-      const id = 'DFM' + String(m2[1]).padStart(4,'0');
-      const kb = parseInt(m2[2].replace(/,/g,''));
-      if (!isNaN(kb) && kb > 0 && !branches[id]) {
+      const id = 'DFM' + String(m2[1]).padStart(4, '0');
+      const kb = parseInt(m2[2].replace(/,/g, ''), 10);
+      if (!isNaN(kb) && kb >= 0 && !branches[id]) {
         branches[id] = { id, name: id, kb };
       }
     }
@@ -460,318 +554,351 @@ function extractBranches(text) {
   return branches;
 }
 
-function setFileStatus(i, msg, cls) {
-  const el = document.getElementById('fi' + i);
-  if (!el) return;
-  el.querySelector('.fi-status').textContent = msg;
-  el.className = 'file-item ' + cls;
+function setFileStatus(i,msg,cls){const el=document.getElementById('fi'+i);if(!el)return;el.querySelector('.fi-status').textContent=msg;el.className='file-item '+cls;}
+function setProgress(pct,msg){document.getElementById('progressBar').style.width=pct+'%';document.getElementById('progressText').textContent=msg;}
+
+/* ====================================================
+   MONTH / YEAR HELPERS
+   ==================================================== */
+function mkSort(mk){
+  for(let i=0;i<TH_MONTHS.length;i++) if(mk.startsWith(TH_MONTHS[i])){const y=parseInt(mk.slice(TH_MONTHS[i].length))||0;return y*100+i;}
+  return 0;
 }
-function setProgress(pct, msg) {
-  document.getElementById('progressBar').style.width = pct + '%';
-  document.getElementById('progressText').textContent = msg;
+function sortMonths(keys){return [...keys].sort((a,b)=>mkSort(a)-mkSort(b));}
+function yearOf(mk){for(const m of TH_MONTHS) if(mk.startsWith(m)) return mk.slice(m.length); return '';}
+function shortMonth(mk){for(const m of TH_MONTHS) if(mk.startsWith(m)) return m; return mk;}
+
+function allYears(){return [...new Set(Object.keys(allMonthsData).map(yearOf).filter(Boolean))].sort();}
+function monthsOfYear(y){return sortMonths(Object.keys(allMonthsData).filter(mk=>yearOf(mk)===y));}
+
+// monthkeys ที่ใช้คำนวณ ณ ขณะนี้
+function scopeKeys(){
+  if(currentYear==='all') return sortMonths(Object.keys(allMonthsData));
+  if(currentMonth!=='all') return [currentMonth];
+  return monthsOfYear(currentYear);
 }
 
-/* ============================================================
+/* ====================================================
    BUILD DASHBOARD
-   ============================================================ */
-function buildDashboard() {
-  document.getElementById('uploadZone').style.display = 'none';
-  document.getElementById('dashboard').style.display = 'block';
+   ==================================================== */
+function buildDashboard(){
+  document.getElementById('uploadZone').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  const all=sortMonths(Object.keys(allMonthsData));
+  document.getElementById('headerPeriod').textContent=all.length?`${all[0]} – ${all[all.length-1]}`:'—';
+  document.getElementById('mMonths').textContent=all.length;
+  // default: ดูทุกเดือนของปีล่าสุด (trend view)
+  const years=allYears();
+  currentYear=years.length?years[years.length-1]:'all';
+  currentMonth='all'; currentFilter='all';
+  renderNav(); refreshAll();
+}
 
-  const months = sortMonths(Object.keys(allMonthsData));
+/* ====================================================
+   NAV BAR
+   ==================================================== */
+function renderNav(){
+  const years=allYears();
+  const yearRow=document.getElementById('navYearRow');
+  yearRow.innerHTML='<span class="nav-label">ปี</span>';
 
-  // Month buttons
-  const btnWrap = document.getElementById('monthBtns');
-  btnWrap.innerHTML = '';
-  if (months.length > 1) {
-    const b = document.createElement('button');
-    b.className = 'month-btn active'; b.textContent = 'เฉลี่ยทุกเดือน';
-    b.onclick = () => setMonth('avg');
-    b.id = 'mbtn_avg';
-    btnWrap.appendChild(b);
+  if(years.length>1){
+    const b=mkBtn('ทุกปี','special'+(currentYear==='all'?' active':''),()=>pickYear('all'));
+    yearRow.appendChild(b);
+    yearRow.appendChild(mkSep());
   }
-  months.forEach(mk => {
-    const b = document.createElement('button');
-    b.className = 'month-btn' + (months.length === 1 ? ' active' : '');
-    b.textContent = mk; b.onclick = () => setMonth(mk);
-    b.id = 'mbtn_' + mk;
-    btnWrap.appendChild(b);
+  years.forEach(y=>{
+    const b=mkBtn(y,'nav-btn'+(currentYear===y?' active':''),()=>pickYear(y));
+    b.id='ybtn_'+y; yearRow.appendChild(b);
   });
 
-  currentMonth = months.length > 1 ? 'avg' : months[0];
-  currentFilter = 'all';
-
-  document.getElementById('headerPeriod').textContent = months.join(' / ');
-  document.getElementById('mMonths').textContent = months.length;
-
-  refreshAll();
+  renderMonthRow();
 }
 
-function setMonth(m) {
-  currentMonth = m;
-  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('mbtn_' + m);
-  if (btn) btn.classList.add('active');
-  refreshAll();
-}
+function renderMonthRow(){
+  const monthRow=document.getElementById('navMonthRow');
+  monthRow.innerHTML='<span class="nav-label">เดือน</span>';
+  if(currentYear==='all'){monthRow.classList.remove('show');return;}
+  const months=monthsOfYear(currentYear);
+  if(!months.length){monthRow.classList.remove('show');return;}
+  monthRow.classList.add('show');
 
-function applyFilter() {
-  currentFilter = document.getElementById('filterSelect').value;
-  refreshAll();
-}
-
-function clickTier(t) {
-  currentFilter = currentFilter === t ? 'all' : t;
-  document.getElementById('filterSelect').value = currentFilter;
-  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
-  if (currentFilter !== 'all') {
-    const map = {'300+':'tc300','200-300':'tc200','100-200':'tc100','sub100':'tcsub'};
-    if (map[currentFilter]) document.getElementById(map[currentFilter]).classList.add('selected');
+  // ปุ่ม "ทุกเดือน" — แสดงแนวโน้มรายเดือนในปีนั้น
+  if(months.length>1){
+    const b=mkBtn('ทุกเดือน','special'+(currentMonth==='all'?' active':''),()=>pickMonth('all'));
+    monthRow.appendChild(b); monthRow.appendChild(mkSep());
   }
+  months.forEach(mk=>{
+    const b=mkBtn(shortMonth(mk),'nav-btn'+(currentMonth===mk?' active':''),()=>pickMonth(mk));
+    b.id='mbtn_'+mk; monthRow.appendChild(b);
+  });
+}
+
+function mkBtn(text,cls,fn){const b=document.createElement('button');b.className='nav-btn '+cls;b.textContent=text;b.onclick=fn;return b;}
+function mkSep(){const s=document.createElement('span');s.className='nav-sep';return s;}
+
+function pickYear(y){
+  currentYear=y; currentMonth='all';
+  document.querySelectorAll('#navYearRow .nav-btn').forEach(b=>b.classList.remove('active'));
+  const t=y==='all'?document.querySelector('#navYearRow .special'):document.getElementById('ybtn_'+y);
+  if(t)t.classList.add('active');
+  renderMonthRow(); refreshAll();
+}
+function pickMonth(mk){
+  currentMonth=mk;
+  document.querySelectorAll('#navMonthRow .nav-btn').forEach(b=>b.classList.remove('active'));
+  const t=mk==='all'?document.querySelector('#navMonthRow .special'):document.getElementById('mbtn_'+mk);
+  if(t)t.classList.add('active');
   refreshAll();
 }
 
-function refreshAll() {
-  const data = getDisplayData();
-  updateMetrics(data);
-  updateTierCounts(data);
-  updateDistChart();
-  updatePieChart(data);
-  updateTopChart();
-  renderTable();
+function applyFilter(){currentFilter=document.getElementById('filterSelect').value;refreshAll();}
+function clickTier(t){
+  currentFilter=currentFilter===t?'all':t;
+  document.getElementById('filterSelect').value=currentFilter;
+  document.querySelectorAll('.tier-card').forEach(c=>c.classList.remove('selected'));
+  if(currentFilter!=='all'){const m={'300+':'tc300','200-300':'tc200','100-200':'tc100','sub100':'tcsub'};if(m[currentFilter])document.getElementById(m[currentFilter]).classList.add('selected');}
+  refreshAll();
 }
 
-/* ============================================================
-   DATA HELPERS
-   ============================================================ */
-const KBtoGB = kb => kb / 1024 / 1024;
+function refreshAll(){
+  const data=getDisplayData();
+  updateMetrics(data); updateTierCounts(data);
+  updateDistChart(); updatePieChart(data); updateTopChart(); renderTable();
+}
 
-function getAllBranches() {
-  /* Merge all months, compute per-month GB */
-  const months = Object.keys(allMonthsData);
-  const merged = {};
-  months.forEach(mk => {
-    Object.values(allMonthsData[mk]).forEach(br => {
-      if (!merged[br.id]) merged[br.id] = { id: br.id, name: br.name, months: {} };
-      merged[br.id].months[mk] = br.kb;
-      // update name with latest non-empty
-      if (br.name && br.name !== br.id) merged[br.id].name = br.name;
+/* ====================================================
+   DATA HELPERS
+   ==================================================== */
+const KBtoGB=kb=>kb/1024/1024;
+
+function getAllBranches(){
+  const keys=scopeKeys();
+  const merged={};
+  keys.forEach(mk=>{
+    Object.values(allMonthsData[mk]||{}).forEach(br=>{
+      if(!merged[br.id]) merged[br.id]={id:br.id,name:br.name,months:{}};
+      merged[br.id].months[mk]=br.kb;
+      if(br.name&&br.name!==br.id) merged[br.id].name=br.name;
     });
   });
-  return Object.values(merged).map(br => {
-    const vals = Object.values(br.months).map(KBtoGB);
-    const avg = vals.reduce((a,b)=>a+b,0) / (vals.length || 1);
-    return { ...br, avg, months_gb: br.months };
-  });
+  return Object.values(merged);
 }
 
-function getDisplayData() {
-  const all = getAllBranches();
-  const months = Object.keys(allMonthsData);
-  return all.map(br => {
+function getDisplayData(){
+  const keys=scopeKeys();
+  return getAllBranches().map(br=>{
     let gb;
-    if (currentMonth === 'avg') {
-      gb = br.avg;
+    if(keys.length===1){
+      // ดูเดือนเดียว — ใช้ตัวเลขเดือนนั้นตรงๆ
+      gb=br.months[keys[0]]!==undefined?KBtoGB(br.months[keys[0]]):null;
     } else {
-      gb = br.months[currentMonth] ? KBtoGB(br.months[currentMonth]) : null;
+      // ดูหลายเดือน (trend) — ใช้เดือนล่าสุดสำหรับ tier/badge/rank
+      const lastKey=keys[keys.length-1];
+      gb=br.months[lastKey]!==undefined?KBtoGB(br.months[lastKey]):null;
+      // fallback เดือนล่าสุดที่มีข้อมูล
+      if(gb===null){
+        for(let i=keys.length-1;i>=0;i--){
+          if(br.months[keys[i]]!==undefined){gb=KBtoGB(br.months[keys[i]]);break;}
+        }
+      }
     }
-    return { ...br, displayGb: gb, tier: tier(gb) };
-  }).filter(br => br.displayGb !== null);
+    return {...br,displayGb:gb,tier:tierOf(gb)};
+  }).filter(br=>br.displayGb!==null);
 }
 
-function tier(gb) {
-  if (gb === null || gb === undefined) return 'na';
-  if (gb >= 300) return '300+';
-  if (gb >= 200) return '200-300';
-  if (gb >= 100) return '100-200';
-  return 'sub100';
-}
-function tierLabel(t) {
-  return {
-    '300+':'300+ GB','200-300':'200–300 GB',
-    '100-200':'100–200 GB','sub100':'<100 GB'
-  }[t] || '—';
-}
-function tierBadge(t) {
-  const cfg = {
-    '300+':['b-red','300+ GB'],
-    '200-300':['b-blue','200–300 GB'],
-    '100-200':['b-green','100–200 GB'],
-    'sub100':['b-gray','<100 GB']
-  };
-  const [cls,lbl] = cfg[t] || ['b-gray','—'];
-  return `<span class="badge ${cls}">${lbl}</span>`;
-}
+function tierOf(gb){if(gb===null||gb===undefined)return 'na';if(gb>=300)return '300+';if(gb>=200)return '200-300';if(gb>=100)return '100-200';return 'sub100';}
+function tierLabel(t){return{'300+':'300+ GB','200-300':'200–300 GB','100-200':'100–200 GB','sub100':'<100 GB'}[t]||'—';}
+function tierBadge(t){const c={'300+':['b-red','300+ GB'],'200-300':['b-blue','200–300 GB'],'100-200':['b-green','100–200 GB'],'sub100':['b-gray','<100 GB']};const[cls,lbl]=c[t]||['b-gray','—'];return `<span class="badge ${cls}">${lbl}</span>`;}
 
-/* ============================================================
+/* ====================================================
    METRICS
-   ============================================================ */
-function updateMetrics(data) {
-  const sorted = [...data].sort((a,b)=>b.displayGb-a.displayGb);
-  const total = data.length;
-  const sum = data.reduce((a,r)=>a+r.displayGb,0);
-  const avg = total ? sum/total : 0;
-  const max = sorted[0];
-  document.getElementById('mTotal').textContent = total;
-  document.getElementById('mMax').textContent = max ? max.displayGb.toFixed(1) : '—';
-  document.getElementById('mMaxName').textContent = max ? max.name : 'GB';
-  document.getElementById('mAvg').textContent = avg.toFixed(1);
-  document.getElementById('mSum').textContent = sum >= 1000 ? (sum/1000).toFixed(2)+' TB' : sum.toFixed(1)+' GB';
+   ==================================================== */
+function updateMetrics(data){
+  const s=[...data].sort((a,b)=>b.displayGb-a.displayGb);
+  const keys=scopeKeys();
+  const isMulti=keys.length>1;
+  const lastMk=keys[keys.length-1];
+  const sum=data.reduce((a,r)=>a+r.displayGb,0);
+  const avg=data.length?sum/data.length:0;
+  const max=s[0];
+  document.getElementById('mTotal').textContent=data.length;
+  document.getElementById('mMax').textContent=max?max.displayGb.toFixed(1):'—';
+  document.getElementById('mMaxName').textContent=max?(isMulti?`${max.name} (${shortMonth(lastMk)})`:max.name):'GB';
+  document.getElementById('mAvg').textContent=avg.toFixed(1);
+  document.getElementById('mSum').textContent=sum>=1000?(sum/1000).toFixed(2)+' TB':sum.toFixed(1)+' GB';
+  // ปรับ label ตามโหมด
+  document.querySelector('#mAvg').closest('.metric-card').querySelector('.m-label').textContent=
+    isMulti?`เฉลี่ยต่อสาขา (${shortMonth(lastMk)})`:'เฉลี่ยต่อสาขา';
+  document.querySelector('#mSum').closest('.metric-card').querySelector('.m-sub').textContent=
+    isMulti?`GB (${shortMonth(lastMk)})`:'GB';
+}
+function updateTierCounts(data){
+  const c={'300+':0,'200-300':0,'100-200':0,'sub100':0};
+  data.forEach(r=>{if(c[r.tier]!==undefined)c[r.tier]++;});
+  document.getElementById('cnt300').textContent=c['300+'];
+  document.getElementById('cnt200').textContent=c['200-300'];
+  document.getElementById('cnt100').textContent=c['100-200'];
+  document.getElementById('cntsub').textContent=c['sub100'];
 }
 
-function updateTierCounts(data) {
-  const c = {'300+':0,'200-300':0,'100-200':0,'sub100':0};
-  data.forEach(r => { if(c[r.tier]!==undefined) c[r.tier]++; });
-  document.getElementById('cnt300').textContent = c['300+'];
-  document.getElementById('cnt200').textContent = c['200-300'];
-  document.getElementById('cnt100').textContent = c['100-200'];
-  document.getElementById('cntsub').textContent = c['sub100'];
-}
-
-/* ============================================================
+/* ====================================================
    CHARTS
-   ============================================================ */
-function updateDistChart() {
-  const months = sortMonths(Object.keys(allMonthsData));
-  const tiers = ['300+','200-300','100-200','sub100'];
-  const colors = ['#A32D2D','#185FA5','#3B6D11','#888780'];
-  const datasets = tiers.map((t,i) => ({
-    label: tierLabel(t),
-    data: months.map(mk => {
-      const vals = Object.values(allMonthsData[mk]).map(b=>KBtoGB(b.kb));
-      return vals.filter(v=>tier(v)===t).length;
-    }),
-    backgroundColor: colors[i]
-  }));
-  if (distChart) distChart.destroy();
-  distChart = new Chart(document.getElementById('distChart'), {
-    type:'bar',
-    data:{ labels: months, datasets },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false } },
-      scales:{
-        x:{ stacked:true, ticks:{ color:'#888', font:{size:11} } },
-        y:{ stacked:true, ticks:{ color:'#888', font:{size:11} }, title:{ display:true, text:'จำนวนสาขา', color:'#888', font:{size:11} } }
+   ==================================================== */
+function updateDistChart(){
+  const keys=scopeKeys();
+  const labels=keys.map(mk=>currentYear==='all'?mk:shortMonth(mk));
+  const multiMonth=keys.length>1;
+
+  if(distChart)distChart.destroy();
+
+  if(multiMonth){
+    // กราฟเส้น — แนวโน้มจำนวนสาขาต่อ tier รายเดือน
+    const tiers=['300+','200-300','100-200','sub100'];
+    const colors=['#A32D2D','#185FA5','#3B6D11','#888780'];
+    const datasets=tiers.map((t,i)=>({
+      label:tierLabel(t),
+      data:keys.map(mk=>{const v=Object.values(allMonthsData[mk]||{}).map(b=>KBtoGB(b.kb));return v.filter(x=>tierOf(x)===t).length;}),
+      borderColor:colors[i], backgroundColor:colors[i]+'33',
+      pointRadius:4, pointHoverRadius:6,
+      tension:0.3, fill:false, borderWidth:2
+    }));
+    document.getElementById('distTitle').textContent=
+      `แนวโน้มจำนวนสาขาต่อกลุ่ม (${labels[0]} – ${labels[labels.length-1]})`;
+    distChart=new Chart(document.getElementById('distChart'),{
+      type:'line',data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'top',labels:{font:{size:11},padding:12,color:'#5F5E5A'}}},
+        scales:{
+          x:{ticks:{color:'#888',font:{size:11}}},
+          y:{ticks:{color:'#888',font:{size:11}},title:{display:true,text:'จำนวนสาขา',color:'#888',font:{size:11}},min:0}
+        }
       }
-    }
-  });
+    });
+  } else {
+    // กราฟ stacked bar — ดูเดือนเดียว แสดงสัดส่วน tier
+    const tiers=['300+','200-300','100-200','sub100'];
+    const colors=['#A32D2D','#185FA5','#3B6D11','#888780'];
+    const datasets=tiers.map((t,i)=>({
+      label:tierLabel(t),
+      data:keys.map(mk=>{const v=Object.values(allMonthsData[mk]||{}).map(b=>KBtoGB(b.kb));return v.filter(x=>tierOf(x)===t).length;}),
+      backgroundColor:colors[i]
+    }));
+    document.getElementById('distTitle').textContent=`การกระจายตามกลุ่ม (${labels[0]})`;
+    distChart=new Chart(document.getElementById('distChart'),{
+      type:'bar',data:{labels,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{x:{stacked:true,ticks:{color:'#888',font:{size:11}}},y:{stacked:true,ticks:{color:'#888',font:{size:11}},title:{display:true,text:'จำนวนสาขา',color:'#888',font:{size:11}}}}
+      }
+    });
+  }
 }
 
-function updatePieChart(data) {
-  const c = {'300+':0,'200-300':0,'100-200':0,'sub100':0};
-  data.forEach(r => { if(c[r.tier]!==undefined) c[r.tier]++; });
-  if (pieChart) pieChart.destroy();
-  pieChart = new Chart(document.getElementById('pieChart'), {
+function updatePieChart(data){
+  const c={'300+':0,'200-300':0,'100-200':0,'sub100':0};
+  data.forEach(r=>{if(c[r.tier]!==undefined)c[r.tier]++;});
+  if(pieChart)pieChart.destroy();
+  pieChart=new Chart(document.getElementById('pieChart'),{
     type:'doughnut',
-    data:{
-      labels:['300+ GB','200–300 GB','100–200 GB','<100 GB'],
-      datasets:[{
-        data:[c['300+'],c['200-300'],c['100-200'],c['sub100']],
-        backgroundColor:['#A32D2D','#185FA5','#3B6D11','#888780'],
-        borderWidth:2, borderColor:'#fff'
-      }]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{ position:'bottom', labels:{ font:{size:11}, padding:12, color:'#5F5E5A' } },
-        tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed} สาขา` } }
-      }
-    }
+    data:{labels:['300+ GB','200–300 GB','100–200 GB','<100 GB'],datasets:[{data:[c['300+'],c['200-300'],c['100-200'],c['sub100']],backgroundColor:['#A32D2D','#185FA5','#3B6D11','#888780'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12,color:'#5F5E5A'}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} สาขา`}}}}
   });
 }
 
-function updateTopChart() {
-  const data = getDisplayData().sort((a,b)=>b.displayGb-a.displayGb).slice(0,10);
-  const colors = data.map(r => ({
-    '300+':'#A32D2D','200-300':'#185FA5','100-200':'#3B6D11','sub100':'#888780'
-  }[r.tier] || '#888780'));
-  if (topChart) topChart.destroy();
-  const wrapH = Math.max(280, data.length * 38 + 40);
-  document.querySelector('.chart-wrap-top').style.height = wrapH + 'px';
-  topChart = new Chart(document.getElementById('topChart'), {
+function updateTopChart(){
+  const data=getDisplayData().sort((a,b)=>b.displayGb-a.displayGb).slice(0,10);
+  const colors=data.map(r=>({'300+':'#A32D2D','200-300':'#185FA5','100-200':'#3B6D11','sub100':'#888780'}[r.tier]||'#888780'));
+  if(topChart)topChart.destroy();
+  const h=Math.max(280,data.length*38+40);
+  document.querySelector('.chart-wrap-top').style.height=h+'px';
+  topChart=new Chart(document.getElementById('topChart'),{
     type:'bar',
-    data:{
-      labels: data.map(r => r.name),
-      datasets:[{
-        label:'GB',
-        data: data.map(r => parseFloat(r.displayGb.toFixed(2))),
-        backgroundColor: colors
-      }]
-    },
-    options:{
-      indexAxis:'y', responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.x.toFixed(1)} GB` } } },
-      scales:{
-        x:{ ticks:{ color:'#888', font:{size:11}, callback: v => v+' GB' } },
-        y:{ ticks:{ color:'#333', font:{size:11} } }
-      }
-    }
+    data:{labels:data.map(r=>r.name),datasets:[{label:'GB',data:data.map(r=>parseFloat(r.displayGb.toFixed(2))),backgroundColor:colors}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.x.toFixed(1)} GB`}}},scales:{x:{ticks:{color:'#888',font:{size:11},callback:v=>v+' GB'}},y:{ticks:{color:'#333',font:{size:11}}}}}
   });
 }
 
-/* ============================================================
-   TABLE
-   ============================================================ */
-function renderTable() {
-  const months = sortMonths(Object.keys(allMonthsData));
-  const q = document.getElementById('searchBar').value.toLowerCase();
-  let data = getDisplayData();
-  if (q) data = data.filter(r => r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q));
-  if (currentFilter !== 'all') data = data.filter(r => r.tier === currentFilter);
-  data.sort((a,b) => b.displayGb - a.displayGb);
+/* ====================================================
+   TABLE — แสดงเฉพาะ column ใน scope
+   ==================================================== */
+function renderTable(){
+  const keys=scopeKeys();
+  const q=document.getElementById('searchBar').value.toLowerCase();
+  let data=getDisplayData();
+  if(q) data=data.filter(r=>r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q));
+  if(currentFilter!=='all') data=data.filter(r=>r.tier===currentFilter);
+  data.sort((a,b)=>b.displayGb-a.displayGb);
 
-  // Header
-  const thead = document.getElementById('tblHead');
-  thead.innerHTML = `<tr>
-    <th style="width:36px">#</th>
-    <th>รหัส</th>
-    <th>สาขา</th>
-    ${months.map(mk => `<th style="text-align:right">${mk}<br><span style="font-weight:400;color:var(--text3)">(GB)</span></th>`).join('')}
-    ${months.length > 1 ? '<th style="text-align:right">เฉลี่ย<br><span style="font-weight:400;color:var(--text3)">(GB)</span></th>' : ''}
+  const colHdr=mk=>currentYear==='all'?mk:shortMonth(mk);
+  document.getElementById('tblHead').innerHTML=`<tr>
+    <th style="width:36px">#</th><th>รหัส</th><th>สาขา</th>
+    ${keys.map(mk=>`<th style="text-align:right">${colHdr(mk)}<br><span style="font-weight:400;color:var(--text3)">(GB)</span></th>`).join('')}
     <th style="text-align:right">กลุ่ม</th>
   </tr>`;
 
-  const tbody = document.getElementById('tblBody');
-  if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="20" class="no-data">ไม่พบข้อมูล</td></tr>';
-  } else {
-    tbody.innerHTML = data.map((r,i) => `<tr>
-      <td>${i+1}</td>
-      <td style="color:var(--text2);font-size:11px">${r.id}</td>
-      <td style="font-weight:500">${r.name}</td>
-      ${months.map(mk => {
-        const v = r.months[mk] ? KBtoGB(r.months[mk]) : null;
-        return `<td class="num">${v !== null ? v.toFixed(1) : '—'}</td>`;
-      }).join('')}
-      ${months.length > 1 ? `<td class="num bold">${r.avg.toFixed(1)}</td>` : ''}
-      <td>${tierBadge(r.tier)}</td>
-    </tr>`).join('');
-  }
+  const tbody=document.getElementById('tblBody');
+  if(!data.length){tbody.innerHTML='<tr><td colspan="20" class="no-data">ไม่พบข้อมูล</td></tr>';return;}
+  tbody.innerHTML=data.map((r,i)=>`<tr>
+    <td>${i+1}</td>
+    <td style="color:var(--text2);font-size:11px">${r.id}</td>
+    <td style="font-weight:500">${r.name}</td>
+    ${keys.map(mk=>{const v=r.months[mk]!==undefined?KBtoGB(r.months[mk]):null;return`<td class="num">${v!==null?v.toFixed(1):'—'}</td>`;}).join('')}
+    <td>${tierBadge(r.tier)}</td>
+  </tr>`).join('');
 
-  // Update title
-  const fLabel = currentFilter === 'all' ? '' : ` — ${tierLabel(currentFilter)}`;
-  document.getElementById('tblTitle').textContent =
-    `ตารางข้อมูลทุกสาขา (${data.length} สาขา)${fLabel}`;
+  const fl=currentFilter==='all'?'':` — ${tierLabel(currentFilter)}`;
+  document.getElementById('tblTitle').textContent=`ตารางข้อมูลทุกสาขา (${data.length} สาขา)${fl}`;
 }
 
-/* ============================================================
-   RESET
-   ============================================================ */
-function resetDashboard() {
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('uploadZone').style.display = 'flex';
-  document.getElementById('progressWrap').style.display = 'none';
-  document.getElementById('progressBar').style.width = '0%';
-  document.getElementById('fileList').innerHTML = '';
-  document.getElementById('processBtn').disabled = true;
-  document.getElementById('headerPeriod').textContent = 'ยังไม่โหลดข้อมูล';
-  selectedFiles = [];
-  allMonthsData = {};
-  if (distChart) { distChart.destroy(); distChart = null; }
-  if (pieChart) { pieChart.destroy(); pieChart = null; }
-  if (topChart) { topChart.destroy(); topChart = null; }
+/* ====================================================
+   ADD MORE PDF (จาก dashboard โดยไม่ต้อง reset)
+   ==================================================== */
+function addMorePdf(){
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='.pdf'; inp.multiple=true;
+  inp.onchange=async()=>{
+    const files=[...inp.files];
+    if(!files.length)return;
+    showToast(`กำลังอ่าน ${files.length} ไฟล์...`);
+    let ok=0,err=0;
+    for(const f of files){
+      try{const mk=await parsePDF(f);await dbSave(mk,allMonthsData[mk]);ok++;}
+      catch(e){err++;console.error(e);}
+    }
+    setDbStatus(Object.keys(allMonthsData).length);
+    const all=sortMonths(Object.keys(allMonthsData));
+    document.getElementById('headerPeriod').textContent=all.length?`${all[0]} – ${all[all.length-1]}`:'—';
+    document.getElementById('mMonths').textContent=all.length;
+    showToast(`✓ เพิ่ม ${ok} เดือน${err?` (error ${err})`:''}`);
+    renderNav(); refreshAll();
+  };
+  inp.click();
+}
+
+function showToast(msg,ms=3000){
+  const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(),ms);
+}
+
+/* ====================================================
+   RESET ALL
+   ==================================================== */
+async function resetAll(){
+  if(!confirm('ล้างข้อมูลทั้งหมดและกลับหน้าหลัก?'))return;
+  await dbClear();
+  allMonthsData={}; selectedFiles=[]; currentYear='all'; currentMonth='avg'; currentFilter='all';
+  [distChart,pieChart,topChart].forEach(c=>{if(c)c.destroy();});
+  distChart=pieChart=topChart=null;
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('uploadZone').style.display='flex';
+  document.getElementById('cacheBanner').style.display='none';
+  document.getElementById('progressWrap').style.display='none';
+  document.getElementById('progressBar').style.width='0%';
+  document.getElementById('fileList').innerHTML='';
+  document.getElementById('processBtn').disabled=true;
+  document.getElementById('headerPeriod').textContent='ยังไม่โหลดข้อมูล';
+  setDbStatus(0);
 }
 </script>
 </body>
