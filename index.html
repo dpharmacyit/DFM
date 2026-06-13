@@ -647,14 +647,14 @@ async function listFolderPdfFiles(folderId, apiKey) {
   return data.files || [];
 }
 
-async function downloadDriveFile(id, name) {
-  const url = `https://drive.google.com/uc?export=download&id=${id}`;
+async function downloadDriveFile(id, name, apiKey) {
+  const url = `https://www.googleapis.com/drive/v3/files/${id}?alt=media&key=${apiKey}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP '+res.status);
-  const blob = await res.blob();
-  if (blob.type && !blob.type.includes('pdf') && blob.size < 100000) {
-    throw new Error('ไม่ใช่ไฟล์ PDF — ตรวจสอบสิทธิ์การแชร์ (Anyone with the link)');
+  if (!res.ok) {
+    const body = await res.text().catch(()=>'');
+    throw new Error(`HTTP ${res.status}: ${body.slice(0,150)}`);
   }
+  const blob = await res.blob();
   return new File([blob], name || `drive_${id.slice(0,8)}.pdf`, { type: 'application/pdf' });
 }
 
@@ -664,6 +664,7 @@ async function fetchDriveFiles() {
   const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
   const parsed = lines.map(parseDriveLine).filter(Boolean);
   if (!parsed.length) { showToast('ไม่พบลิงก์/ID ที่ใช้ได้'); return; }
+  if (!apiKey) { showToast('กรุณาใส่ Google API Key'); return; }
 
   // บันทึกไว้ใช้ครั้งหน้า
   saveDriveLinks(raw, apiKey);
@@ -692,7 +693,7 @@ async function fetchDriveFiles() {
   let ok=0, err=0;
   for (const t of targets) {
     try {
-      const file = await downloadDriveFile(t.id, t.name);
+      const file = await downloadDriveFile(t.id, t.name, apiKey);
       if (!selectedFiles.find(x=>x.name===file.name)) selectedFiles.push(file);
       ok++;
     } catch(e) {
