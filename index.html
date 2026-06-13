@@ -354,17 +354,20 @@
 
     <!-- Google Drive link input -->
     <div class="drive-config" id="driveConfig">
-      <div class="dc-title">วาง Google Drive link หรือ File ID (1 รายการต่อบรรทัด)</div>
+      <div class="dc-title">Google API Key (สำหรับอ่านลิงก์โฟลเดอร์)</div>
+      <input type="text" id="driveApiKey" placeholder="วาง API Key ที่นี่ (ทำครั้งเดียว)">
+      <div class="dc-title" style="margin-top:8px">วาง Google Drive link — ไฟล์เดี่ยว หรือ ลิงก์โฟลเดอร์ก็ได้ (1 รายการต่อบรรทัด)</div>
       <textarea id="driveLinks" rows="3" placeholder="https://drive.google.com/file/d/XXXXXXXXXXXX/view
-หรือ XXXXXXXXXXXX"></textarea>
+หรือ https://drive.google.com/drive/folders/XXXXXXXXXXXX"></textarea>
       <div class="dc-row">
         <button class="btn-load" onclick="fetchDriveFiles()">ดึงไฟล์</button>
         <button class="btn-clear-cache" onclick="clearDriveLinks()">ลบรายการที่บันทึก</button>
       </div>
       <p class="dc-hint">
-        ไฟล์ต้องตั้งสิทธิ์เป็น <b>"แชร์แบบลิงก์ – ทุกคนที่มีลิงก์ดูได้ (Anyone with the link)"</b><br>
-        ใส่ลิงก์แบบ <code>drive.google.com/file/d/.../view</code> หรือแค่ตัว File ID ก็ได้ — ใส่ได้หลายไฟล์ คนละบรรทัด<br>
-        ลิงก์จะถูก<b>บันทึกไว้ในเครื่องนี้อัตโนมัติ</b> ครั้งหน้าใช้ปุ่ม "ดึงไฟล์ที่บันทึกไว้" ได้เลย
+        ไฟล์/โฟลเดอร์ต้องตั้งสิทธิ์เป็น <b>"แชร์แบบลิงก์ – ทุกคนที่มีลิงก์ดูได้ (Anyone with the link)"</b><br>
+        ถ้าใส่ลิงก์โฟลเดอร์ ระบบจะดึงไฟล์ PDF ทั้งหมดในโฟลเดอร์นั้นให้อัตโนมัติ (ต้องมี API Key)<br>
+        สร้าง API Key ฟรีที่ <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> → เปิดใช้ <b>Google Drive API</b> → Create Credentials → API Key (ไม่ต้องตั้งค่า OAuth)<br>
+        ลิงก์และ API Key จะถูก<b>บันทึกไว้ในเครื่องนี้อัตโนมัติ</b> ครั้งหน้าใช้ปุ่ม "ดึงไฟล์ที่บันทึกไว้" ได้เลย
       </p>
     </div>
 
@@ -580,29 +583,35 @@ function renderFileList() {
    GOOGLE DRIVE LINKS (จดจำใน localStorage)
    ==================================================== */
 const DRIVE_LINKS_KEY = 'dfm_drive_links';
+const DRIVE_APIKEY_KEY = 'dfm_drive_apikey';
 
 function loadSavedDriveLinks() {
   const saved = localStorage.getItem(DRIVE_LINKS_KEY) || '';
+  const savedKey = localStorage.getItem(DRIVE_APIKEY_KEY) || '';
   document.getElementById('driveLinks').value = saved;
-  const ids = saved.split('\n').map(l=>l.trim()).filter(Boolean).map(extractDriveId).filter(Boolean);
+  document.getElementById('driveApiKey').value = savedKey;
+  const items = saved.split('\n').map(l=>l.trim()).filter(Boolean);
   const btn = document.getElementById('driveQuickBtn');
-  if (ids.length) {
-    document.getElementById('driveSavedCount').textContent = ids.length;
+  if (items.length) {
+    document.getElementById('driveSavedCount').textContent = items.length;
     btn.style.display = 'inline-flex';
   } else {
     btn.style.display = 'none';
   }
 }
 
-function saveDriveLinks(raw) {
+function saveDriveLinks(raw, apiKey) {
   localStorage.setItem(DRIVE_LINKS_KEY, raw);
+  localStorage.setItem(DRIVE_APIKEY_KEY, apiKey || '');
   loadSavedDriveLinks();
 }
 
 function clearDriveLinks() {
-  if (!confirm('ลบรายการลิงก์ Drive ที่บันทึกไว้?')) return;
+  if (!confirm('ลบรายการลิงก์ Drive และ API Key ที่บันทึกไว้?')) return;
   localStorage.removeItem(DRIVE_LINKS_KEY);
+  localStorage.removeItem(DRIVE_APIKEY_KEY);
   document.getElementById('driveLinks').value = '';
+  document.getElementById('driveApiKey').value = '';
   document.getElementById('driveQuickBtn').style.display = 'none';
 }
 
@@ -610,46 +619,84 @@ function toggleDriveBox() {
   document.getElementById('driveConfig').classList.toggle('show');
 }
 
-function extractDriveId(line) {
+// แยกประเภทลิงก์: คืน {type:'file'|'folder', id}
+function parseDriveLine(line) {
   line = line.trim();
   if (!line) return null;
-  // https://drive.google.com/file/d/XXXX/view  หรือ /open?id=XXXX  หรือ /uc?id=XXXX
-  let m = line.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
+  let m = line.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return { type: 'folder', id: m[1] };
+  m = line.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return { type: 'file', id: m[1] };
   m = line.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
-  // ถ้าเป็น ID ตรงๆ (ไม่มี / หรือ : )
-  if (/^[a-zA-Z0-9_-]{15,}$/.test(line)) return line;
+  if (m) return { type: 'file', id: m[1] };
+  if (/^[a-zA-Z0-9_-]{15,}$/.test(line)) return { type: 'file', id: line };
   return null;
+}
+
+// list ไฟล์ PDF ทั้งหมดในโฟลเดอร์ (ต้องใช้ API Key, โฟลเดอร์ต้อง public)
+async function listFolderPdfFiles(folderId, apiKey) {
+  if (!apiKey) throw new Error('ต้องใส่ API Key สำหรับลิงก์โฟลเดอร์');
+  const q = encodeURIComponent(`'${folderId}' in parents and mimeType='application/pdf' and trashed=false`);
+  const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)&key=${apiKey}&pageSize=1000`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.text().catch(()=>'');
+    throw new Error(`Drive API error ${res.status}: ${body.slice(0,200)}`);
+  }
+  const data = await res.json();
+  return data.files || [];
+}
+
+async function downloadDriveFile(id, name) {
+  const url = `https://drive.google.com/uc?export=download&id=${id}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP '+res.status);
+  const blob = await res.blob();
+  if (blob.type && !blob.type.includes('pdf') && blob.size < 100000) {
+    throw new Error('ไม่ใช่ไฟล์ PDF — ตรวจสอบสิทธิ์การแชร์ (Anyone with the link)');
+  }
+  return new File([blob], name || `drive_${id.slice(0,8)}.pdf`, { type: 'application/pdf' });
 }
 
 async function fetchDriveFiles() {
   const raw = document.getElementById('driveLinks').value;
+  const apiKey = document.getElementById('driveApiKey').value.trim();
   const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
-  const ids = lines.map(extractDriveId).filter(Boolean);
-  if (!ids.length) { showToast('ไม่พบลิงก์/ID ที่ใช้ได้'); return; }
+  const parsed = lines.map(parseDriveLine).filter(Boolean);
+  if (!parsed.length) { showToast('ไม่พบลิงก์/ID ที่ใช้ได้'); return; }
 
-  // บันทึกลิงก์ไว้ใช้ครั้งหน้า
-  saveDriveLinks(raw);
+  // บันทึกไว้ใช้ครั้งหน้า
+  saveDriveLinks(raw, apiKey);
 
-  showToast(`กำลังดึง ${ids.length} ไฟล์จาก Google Drive...`);
-  let ok=0, err=0;
-  for (const id of ids) {
-    try {
-      const url = `https://drive.google.com/uc?export=download&id=${id}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP '+res.status);
-      const blob = await res.blob();
-      if (blob.type && !blob.type.includes('pdf') && blob.size < 100000) {
-        // อาจเป็นหน้า HTML (สิทธิ์ไม่ใช่ public หรือ confirm download)
-        throw new Error('ไม่ใช่ไฟล์ PDF — ตรวจสอบสิทธิ์การแชร์ (Anyone with the link)');
+  // resolve โฟลเดอร์ -> รายชื่อไฟล์
+  let targets = [];
+  for (const item of parsed) {
+    if (item.type === 'file') {
+      targets.push({ id: item.id, name: null });
+    } else {
+      try {
+        showToast('กำลังอ่านรายการไฟล์ในโฟลเดอร์...');
+        const files = await listFolderPdfFiles(item.id, apiKey);
+        if (!files.length) showToast('ไม่พบไฟล์ PDF ในโฟลเดอร์ (ตรวจสอบสิทธิ์แชร์)');
+        files.forEach(f => targets.push({ id: f.id, name: f.name }));
+      } catch(e) {
+        console.error('Folder list error:', e);
+        showToast('อ่านโฟลเดอร์ไม่สำเร็จ: ' + e.message);
       }
-      const name = `drive_${id.slice(0,8)}.pdf`;
-      const file = new File([blob], name, { type: 'application/pdf' });
+    }
+  }
+
+  if (!targets.length) { showToast('ไม่พบไฟล์ที่จะดึง'); return; }
+
+  showToast(`กำลังดึง ${targets.length} ไฟล์จาก Google Drive...`);
+  let ok=0, err=0;
+  for (const t of targets) {
+    try {
+      const file = await downloadDriveFile(t.id, t.name);
       if (!selectedFiles.find(x=>x.name===file.name)) selectedFiles.push(file);
       ok++;
     } catch(e) {
-      console.error('Drive fetch error:', id, e);
+      console.error('Drive fetch error:', t.id, e);
       err++;
     }
   }
