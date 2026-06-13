@@ -348,9 +348,12 @@
 
     <div class="src-buttons">
       <button class="upload-btn" onclick="document.getElementById('fileInput').click()">+ เลือกไฟล์ PDF</button>
-      <button class="upload-btn drive-btn" onclick="openDriveFolder()">📁 เปิดโฟลเดอร์ Google Drive</button>
+      <button class="upload-btn drive-btn" onclick="fetchFromGithub()">⬇ ดึงรายงานจาก GitHub</button>
     </div>
     <input type="file" id="fileInput" accept=".pdf" multiple>
+    <p class="dc-hint" style="margin-top:8px">
+      อัปโหลด PDF ใหม่ลงโฟลเดอร์ <code>reports/</code> ใน repo <code>dpharmacyit/DFM</code> บน GitHub แล้วกลับมากดปุ่มนี้ — ระบบจะดึงไฟล์ PDF ทั้งหมดมาประมวลผลให้อัตโนมัติ
+    </p>
 
     <div class="file-list" id="fileList"></div>
     <div class="progress-wrap" id="progressWrap" style="display:none">
@@ -561,13 +564,48 @@ function renderFileList() {
 }
 
 /* ====================================================
-   GOOGLE DRIVE — เปิดโฟลเดอร์ในแท็บใหม่ให้เลือกไฟล์เอง
+   GITHUB — ดึงไฟล์ PDF จากโฟลเดอร์ reports/ ใน repo
    ==================================================== */
-const DRIVE_FOLDER_URL = 'https://drive.google.com/drive/folders/160rh3Zx66F09DXpv6XnkwcxkpoFjmKlP?usp=sharing';
+const GH_OWNER = 'dpharmacyit';
+const GH_REPO  = 'DFM';
+const GH_PATH  = 'reports';
 
-function openDriveFolder() {
-  window.open(DRIVE_FOLDER_URL, '_blank');
-  showToast('เปิดโฟลเดอร์ Drive แล้ว — ดาวน์โหลดไฟล์ PDF แล้วกด "+ เลือกไฟล์ PDF" เพื่ออัปโหลด');
+async function fetchFromGithub() {
+  showToast('กำลังอ่านรายการไฟล์จาก GitHub...');
+  let items;
+  try {
+    const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`;
+    const res = await fetch(apiUrl);
+    if (!res.ok) throw new Error('GitHub API ' + res.status);
+    items = await res.json();
+  } catch(e) {
+    console.error(e);
+    showToast('อ่านรายการไฟล์ไม่สำเร็จ: ' + e.message);
+    return;
+  }
+
+  const pdfs = (items || []).filter(it => it.type === 'file' && /\.pdf$/i.test(it.name));
+  if (!pdfs.length) { showToast(`ไม่พบไฟล์ PDF ในโฟลเดอร์ ${GH_PATH}/`); return; }
+
+  // เอาเฉพาะไฟล์ที่ยังไม่มีใน selectedFiles
+  const toFetch = pdfs.filter(p => !selectedFiles.find(x=>x.name===p.name));
+  if (!toFetch.length) { showToast('มีไฟล์ทั้งหมดอยู่แล้วในรายการ'); return; }
+
+  showToast(`กำลังดึง ${toFetch.length} ไฟล์จาก GitHub...`);
+  const results = await Promise.allSettled(toFetch.map(async p => {
+    const res = await fetch(p.download_url);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + p.name + ')');
+    const blob = await res.blob();
+    return new File([blob], p.name, { type: 'application/pdf' });
+  }));
+
+  let ok=0, err=0;
+  results.forEach(r => {
+    if (r.status === 'fulfilled') { selectedFiles.push(r.value); ok++; }
+    else { console.error(r.reason); err++; }
+  });
+  renderFileList();
+  showToast(`✓ เพิ่ม ${ok} ไฟล์${err?` · ผิดพลาด ${err}`:''} — กด "ประมวลผลข้อมูล" เพื่อโหลดเข้า dashboard`);
 }
 
 /* ====================================================
