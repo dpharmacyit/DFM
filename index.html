@@ -6,8 +6,6 @@
 <title>DFM Network Usage Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://apis.google.com/js/api.js"></script>
-<script src="https://accounts.google.com/gsi/client"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -125,15 +123,17 @@
   }
   .drive-config.show{display:block;}
   .dc-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;}
-  .drive-config input{
+  .drive-config input,.drive-config textarea{
     width:100%;padding:8px 10px;margin-bottom:8px;font-size:12px;
     background:var(--bg);border:1px solid var(--line2);border-radius:var(--radius);
-    color:var(--text);font-family:var(--mono);
+    color:var(--text);font-family:var(--mono);resize:vertical;
   }
-  .drive-config input:focus{outline:none;border-color:var(--accent);}
+  .drive-config input:focus,.drive-config textarea:focus{outline:none;border-color:var(--accent);}
   .dc-hint{font-size:11px;color:var(--text3);line-height:1.7;margin-top:8px;}
   .dc-hint code{background:var(--bg);padding:1px 5px;border-radius:4px;font-family:var(--mono);}
   .dc-hint a{color:var(--accent);}
+  .dc-row{display:flex;gap:8px;}
+  .dc-row .btn-load{flex:1;}
   #fileInput{display:none;}
   .file-list{margin-top:1.25rem;width:100%;text-align:left;}
   .file-item{
@@ -347,20 +347,24 @@
 
     <div class="src-buttons">
       <button class="upload-btn" onclick="document.getElementById('fileInput').click()">+ เลือกไฟล์ PDF</button>
-      <button class="upload-btn drive-btn" id="driveBtn" onclick="handleDriveAuth()">📁 เชื่อมต่อ Google Drive</button>
+      <button class="upload-btn drive-btn" id="driveBtn" onclick="toggleDriveBox()">📁 ดึงจาก Google Drive</button>
+      <button class="upload-btn drive-btn" id="driveQuickBtn" style="display:none" onclick="fetchDriveFiles()">⚡ ดึงไฟล์ที่บันทึกไว้ (<span id="driveSavedCount">0</span>)</button>
     </div>
     <input type="file" id="fileInput" accept=".pdf" multiple>
 
-    <!-- Google Drive config (กรอกครั้งเดียว, เก็บใน localStorage) -->
+    <!-- Google Drive link input -->
     <div class="drive-config" id="driveConfig">
-      <div class="dc-title">⚙️ ตั้งค่า Google API (ทำครั้งเดียว)</div>
-      <input type="text" id="cfgApiKey" placeholder="API Key">
-      <input type="text" id="cfgClientId" placeholder="OAuth Client ID (....apps.googleusercontent.com)">
-      <button class="btn-load" onclick="saveDriveConfig()">บันทึก & เชื่อมต่อ</button>
+      <div class="dc-title">วาง Google Drive link หรือ File ID (1 รายการต่อบรรทัด)</div>
+      <textarea id="driveLinks" rows="3" placeholder="https://drive.google.com/file/d/XXXXXXXXXXXX/view
+หรือ XXXXXXXXXXXX"></textarea>
+      <div class="dc-row">
+        <button class="btn-load" onclick="fetchDriveFiles()">ดึงไฟล์</button>
+        <button class="btn-clear-cache" onclick="clearDriveLinks()">ลบรายการที่บันทึก</button>
+      </div>
       <p class="dc-hint">
-        ต้องเปิดไฟล์นี้ผ่าน <code>http://localhost</code> (ไม่ใช่ double-click เปิดตรงๆ)<br>
-        สร้าง API Key/Client ID ฟรีที่ <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> →
-        เปิด Drive API + Picker API, เพิ่ม <code>http://localhost:8000</code> ใน Authorized origins
+        ไฟล์ต้องตั้งสิทธิ์เป็น <b>"แชร์แบบลิงก์ – ทุกคนที่มีลิงก์ดูได้ (Anyone with the link)"</b><br>
+        ใส่ลิงก์แบบ <code>drive.google.com/file/d/.../view</code> หรือแค่ตัว File ID ก็ได้ — ใส่ได้หลายไฟล์ คนละบรรทัด<br>
+        ลิงก์จะถูก<b>บันทึกไว้ในเครื่องนี้อัตโนมัติ</b> ครั้งหน้าใช้ปุ่ม "ดึงไฟล์ที่บันทึกไว้" ได้เลย
       </p>
     </div>
 
@@ -573,107 +577,87 @@ function renderFileList() {
 }
 
 /* ====================================================
-   GOOGLE DRIVE PICKER
+   GOOGLE DRIVE LINKS (จดจำใน localStorage)
    ==================================================== */
-let gisTokenClient = null;
-let gDriveAccessToken = null;
-let gapiPickerLoaded = false;
+const DRIVE_LINKS_KEY = 'dfm_drive_links';
 
-function loadDriveConfig() {
-  try {
-    const c = JSON.parse(localStorage.getItem('dfm_drive_cfg') || '{}');
-    if (c.apiKey) document.getElementById('cfgApiKey').value = c.apiKey;
-    if (c.clientId) document.getElementById('cfgClientId').value = c.clientId;
-    return c;
-  } catch(e) { return {}; }
-}
-function saveDriveConfig() {
-  const apiKey = document.getElementById('cfgApiKey').value.trim();
-  const clientId = document.getElementById('cfgClientId').value.trim();
-  if (!apiKey || !clientId) { alert('กรุณากรอก API Key และ Client ID ให้ครบ'); return; }
-  localStorage.setItem('dfm_drive_cfg', JSON.stringify({apiKey, clientId}));
-  handleDriveAuth();
-}
-
-function handleDriveAuth() {
-  if (location.protocol === 'file:') {
-    alert('ต้องเปิดไฟล์นี้ผ่าน http://localhost (รัน local server) — Google จะ block การล็อกอินจาก file:// โดยตรง\n\nวิธีง่ายๆ: เปิด terminal ที่โฟลเดอร์นี้แล้วรัน\n  python -m http.server\nแล้วเข้า http://localhost:8000/index.html');
-    return;
-  }
-  const cfg = loadDriveConfig();
-  if (!cfg.apiKey || !cfg.clientId) {
-    document.getElementById('driveConfig').classList.add('show');
-    return;
-  }
-  if (!window.google || !google.accounts) {
-    showToast('กำลังโหลด Google API กรุณารอสักครู่...');
-    setTimeout(handleDriveAuth, 1000);
-    return;
-  }
-  if (!gisTokenClient) {
-    gisTokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: cfg.clientId,
-      scope: 'https://www.googleapis.com/auth/drive.readonly',
-      callback: (resp) => {
-        if (resp.error) { showToast('เข้าสู่ระบบ Google ไม่สำเร็จ'); return; }
-        gDriveAccessToken = resp.access_token;
-        openDrivePicker(cfg.apiKey);
-      }
-    });
-  }
-  gisTokenClient.requestAccessToken();
-}
-
-function openDrivePicker(apiKey) {
-  if (!gapiPickerLoaded) {
-    gapi.load('picker', () => { gapiPickerLoaded = true; createPicker(apiKey); });
+function loadSavedDriveLinks() {
+  const saved = localStorage.getItem(DRIVE_LINKS_KEY) || '';
+  document.getElementById('driveLinks').value = saved;
+  const ids = saved.split('\n').map(l=>l.trim()).filter(Boolean).map(extractDriveId).filter(Boolean);
+  const btn = document.getElementById('driveQuickBtn');
+  if (ids.length) {
+    document.getElementById('driveSavedCount').textContent = ids.length;
+    btn.style.display = 'inline-flex';
   } else {
-    createPicker(apiKey);
+    btn.style.display = 'none';
   }
 }
 
-function createPicker(apiKey) {
-  const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
-    .setMimeTypes('application/pdf')
-    .setIncludeFolders(true);
-  const picker = new google.picker.PickerBuilder()
-    .setOAuthToken(gDriveAccessToken)
-    .setDeveloperKey(apiKey)
-    .addView(view)
-    .setCallback(pickerCallback)
-    .build();
-  picker.setVisible(true);
+function saveDriveLinks(raw) {
+  localStorage.setItem(DRIVE_LINKS_KEY, raw);
+  loadSavedDriveLinks();
 }
 
-async function pickerCallback(data) {
-  if (data.action !== google.picker.Action.PICKED) return;
-  const docs = data.docs.filter(d => d.mimeType === 'application/pdf');
-  if (!docs.length) { showToast('ไม่พบไฟล์ PDF ที่เลือก'); return; }
+function clearDriveLinks() {
+  if (!confirm('ลบรายการลิงก์ Drive ที่บันทึกไว้?')) return;
+  localStorage.removeItem(DRIVE_LINKS_KEY);
+  document.getElementById('driveLinks').value = '';
+  document.getElementById('driveQuickBtn').style.display = 'none';
+}
 
-  showToast(`กำลังดาวน์โหลด ${docs.length} ไฟล์จาก Drive...`);
-  for (const doc of docs) {
+function toggleDriveBox() {
+  document.getElementById('driveConfig').classList.toggle('show');
+}
+
+function extractDriveId(line) {
+  line = line.trim();
+  if (!line) return null;
+  // https://drive.google.com/file/d/XXXX/view  หรือ /open?id=XXXX  หรือ /uc?id=XXXX
+  let m = line.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  m = line.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  // ถ้าเป็น ID ตรงๆ (ไม่มี / หรือ : )
+  if (/^[a-zA-Z0-9_-]{15,}$/.test(line)) return line;
+  return null;
+}
+
+async function fetchDriveFiles() {
+  const raw = document.getElementById('driveLinks').value;
+  const lines = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const ids = lines.map(extractDriveId).filter(Boolean);
+  if (!ids.length) { showToast('ไม่พบลิงก์/ID ที่ใช้ได้'); return; }
+
+  // บันทึกลิงก์ไว้ใช้ครั้งหน้า
+  saveDriveLinks(raw);
+
+  showToast(`กำลังดึง ${ids.length} ไฟล์จาก Google Drive...`);
+  let ok=0, err=0;
+  for (const id of ids) {
     try {
-      const blob = await downloadDriveFile(doc.id);
-      const file = new File([blob], doc.name, { type: 'application/pdf' });
+      const url = `https://drive.google.com/uc?export=download&id=${id}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const blob = await res.blob();
+      if (blob.type && !blob.type.includes('pdf') && blob.size < 100000) {
+        // อาจเป็นหน้า HTML (สิทธิ์ไม่ใช่ public หรือ confirm download)
+        throw new Error('ไม่ใช่ไฟล์ PDF — ตรวจสอบสิทธิ์การแชร์ (Anyone with the link)');
+      }
+      const name = `drive_${id.slice(0,8)}.pdf`;
+      const file = new File([blob], name, { type: 'application/pdf' });
       if (!selectedFiles.find(x=>x.name===file.name)) selectedFiles.push(file);
+      ok++;
     } catch(e) {
-      console.error('Drive download error:', doc.name, e);
-      showToast(`โหลดไฟล์ ${doc.name} ไม่สำเร็จ`);
+      console.error('Drive fetch error:', id, e);
+      err++;
     }
   }
   renderFileList();
+  showToast(`✓ ดึงสำเร็จ ${ok} ไฟล์${err?` (ผิดพลาด ${err} ไฟล์)`:''}`);
 }
 
-async function downloadDriveFile(fileId) {
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-    { headers: { 'Authorization': 'Bearer ' + gDriveAccessToken } }
-  );
-  if (!res.ok) throw new Error('Drive API error ' + res.status);
-  return await res.blob();
-}
-
-loadDriveConfig();
+loadSavedDriveLinks();
 
 /* ====================================================
    PDF PROCESSING
